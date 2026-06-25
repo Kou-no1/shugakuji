@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>就学時健診 通過チェック</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Hiragino Sans',sans-serif;background:#f4f5f7;color:#1a1a1a;font-size:15px;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+
+/* ===== TOP ===== */
+.top{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:28px 16px 40px;background:#f4f5f7}
+.top-logo{font-size:42px;margin-bottom:8px;margin-top:8px}
+.top-title{font-size:22px;font-weight:700;margin-bottom:3px}
+.top-sub{font-size:13px;color:#6b7280;margin-bottom:28px;text-align:center;line-height:1.6}
+.top-card{background:#fff;border-radius:16px;padding:22px 20px;width:100%;max-width:440px;border:1px solid #e5e7eb;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tc-title{font-size:13px;font-weight:700;color:#374151;margin-bottom:14px}
+.field-label{font-size:12px;color:#6b7280;font-weight:500;margin-bottom:5px;margin-top:12px}
+.field-label:first-of-type{margin-top:0}
+input[type=text],input[type=number]{width:100%;border:1px solid #d1d5db;border-radius:9px;padding:10px 13px;font-size:14px;outline:none;background:#fff}
+input:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.add-row{display:flex;gap:8px}
+.add-row input{flex:1}
+.btn-add{border:1px solid #d1d5db;border-radius:9px;padding:9px 14px;font-size:13px;background:#fff;color:#374151;white-space:nowrap}
+.bulk-row{display:flex;gap:8px;margin-top:8px}
+.bulk-row input{width:80px;flex:none}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:28px}
+.tag{display:inline-flex;align-items:center;gap:3px;font-size:12px;padding:4px 10px;border-radius:999px;background:#ede9fe;color:#4f46e5;border:1px solid #c4b5fd}
+.tag-x{background:none;border:none;cursor:pointer;color:#7c3aed;font-size:15px;line-height:1;padding:0 2px}
+.preset-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.preset-btn{font-size:12px;padding:4px 10px;border-radius:999px;border:1px dashed #c4b5fd;background:#faf5ff;color:#7c3aed;cursor:pointer}
+.preset-btn:hover{background:#ede9fe}
+.btn-create{width:100%;max-width:440px;padding:14px;border-radius:12px;border:none;background:#4f46e5;color:#fff;font-size:16px;font-weight:700;margin-top:4px}
+.btn-create:disabled{background:#9ca3af}
+.top-msg{font-size:13px;text-align:center;color:#dc2626;margin-top:8px;min-height:20px}
+.divider{width:100%;max-width:440px;display:flex;align-items:center;gap:10px;margin:4px 0;color:#9ca3af;font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#e5e7eb}
+.join-card{background:#fff;border-radius:16px;padding:18px 20px;width:100%;max-width:440px;border:1px solid #e5e7eb;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.join-row{display:flex;gap:8px;margin-top:10px}
+.join-row input{flex:1}
+.btn-join{border:2px solid #4f46e5;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:600;background:#fff;color:#4f46e5;white-space:nowrap}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:400px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:6px}
+.modal-sub{font-size:13px;color:#6b7280;margin-bottom:18px;line-height:1.6}
+.url-box{background:#f3f4f6;border-radius:10px;padding:12px 14px;font-size:12px;word-break:break-all;color:#374151;margin-bottom:12px;border:1px solid #e5e7eb;font-family:monospace;line-height:1.5}
+.btn-copy{width:100%;padding:12px;border-radius:10px;border:1px solid #d1d5db;background:#fff;font-size:14px;margin-bottom:10px;cursor:pointer}
+.btn-go{width:100%;padding:13px;border-radius:10px;border:none;background:#4f46e5;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+
+/* ===== APP ===== */
+.app{display:none;flex-direction:column;min-height:100vh}
+.app.show{display:flex}
+.app-hdr{background:#4f46e5;padding:11px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.app-hdr-main{flex:1;overflow:hidden}
+.app-hdr-title{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.app-hdr-id{font-size:10px;color:#c7d2fe;font-family:monospace;margin-top:1px}
+.sync{font-size:11px;padding:3px 9px;border-radius:999px;background:#a5f3fc;color:#164e63;white-space:nowrap}
+.sync.ing{background:#fef9c3;color:#854d0e}
+.sync.err{background:#fee2e2;color:#991b1b}
+
+.tabs{display:flex;background:#fff;border-bottom:1px solid #e5e7eb}
+.tab{flex:1;padding:12px 0;font-size:13px;color:#6b7280;border:none;background:none;border-bottom:2px solid transparent}
+.tab.active{color:#4f46e5;border-bottom-color:#4f46e5;font-weight:600}
+
+.page{display:none;padding:16px;flex:1}
+.page.active{display:block}
+
+/* ===== SETUP ===== */
+.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid #e5e7eb}
+.card-label{font-size:12px;color:#6b7280;margin-bottom:8px;font-weight:500}
+.row{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:5px;border:1px solid #d1d5db;border-radius:9px;padding:9px 15px;font-size:13px;background:#fff;color:#374151;white-space:nowrap}
+.btn-danger{border-color:#fca5a5;color:#dc2626}
+.save-btn{width:100%;padding:13px;border-radius:12px;border:none;background:#4f46e5;color:#fff;font-size:15px;font-weight:600;margin-top:4px;cursor:pointer}
+.setup-msg{font-size:13px;color:#6b7280;text-align:center;margin-top:10px;min-height:18px}
+.share-bar{background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.share-bar-url{font-size:11px;color:#4f46e5;word-break:break-all;flex:1;font-family:monospace}
+.btn-share{font-size:12px;padding:7px 13px;border-radius:8px;border:1px solid #6366f1;background:#fff;color:#4f46e5;cursor:pointer;white-space:nowrap}
+
+/* ===== CHECKIN MATRIX ===== */
+.ci-page{display:none;flex-direction:column;flex:1}
+.ci-page.active{display:flex}
+.ci-bar{background:#fff;border-bottom:1px solid #e5e7eb;padding:9px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:#6b7280}
+.ci-prog{margin-left:auto;font-weight:700;color:#111;font-size:13px}
+.leg{display:flex;align-items:center;gap:4px}
+.leg-box{width:13px;height:13px;border-radius:3px;border:1.5px solid}
+.leg-ok{background:#f0fdf4;border-color:#86efac}
+.leg-ng{background:#f9fafb;border-color:#e5e7eb}
+.ci-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;flex:1}
+.ci-matrix{border-collapse:separate;border-spacing:0;min-width:100%}
+.ci-matrix .col-g{position:sticky;left:0;z-index:3;background:#f9fafb;min-width:72px;max-width:88px;padding:10px 8px;font-size:13px;font-weight:600;border-right:2px solid #d1d5db;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+.ci-matrix thead .col-g{background:#f3f4f6;color:#6b7280;font-size:11px;font-weight:500;border-bottom:2px solid #d1d5db}
+.ci-matrix thead th.col-cp{background:#f3f4f6;padding:8px 6px 6px;font-size:11px;font-weight:500;color:#374151;text-align:center;border-bottom:2px solid #d1d5db;border-right:1px solid #e5e7eb;white-space:nowrap;min-width:78px}
+.cp-th-name{font-size:12px;font-weight:700;color:#111}
+.cp-th-cnt{font-size:10px;color:#6b7280;margin-top:2px}
+.ci-matrix td.t-cell{padding:5px;border-right:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;vertical-align:middle;min-width:78px}
+.tile{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;padding:8px 4px;min-height:54px;cursor:pointer;border:1.5px solid #e5e7eb;background:#f9fafb;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .08s}
+.tile:active{transform:scale(.93)}
+.tile.ok{background:#f0fdf4;border-color:#86efac}
+.tile.ok .t-time{color:#16a34a}
+.t-ico{font-size:20px;line-height:1}
+.t-time{font-size:10px;color:#9ca3af;margin-top:3px;min-height:14px}
+.ci-matrix tbody tr:nth-child(even) .col-g{background:#f0f0f0}
+.ci-matrix tbody tr:nth-child(even) td.t-cell{background:#fafafa}
+.ci-matrix tbody tr.all-ok .col-g{color:#15803d}
+.ci-hint{padding:8px 16px 12px;font-size:11px;color:#9ca3af}
+
+/* ===== OVERVIEW ===== */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.metric{background:#fff;border-radius:12px;padding:11px 12px;border:1px solid #e5e7eb}
+.m-label{font-size:11px;color:#6b7280}
+.m-val{font-size:24px;font-weight:700;margin-top:2px}
+.filter-row{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}
+.fbtn{white-space:nowrap;font-size:12px;padding:5px 13px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#374151;cursor:pointer}
+.fbtn.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.ov-wrap{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;background:#f9fafb;font-size:11px;color:#6b7280;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.pass{color:#16a34a;font-size:12px}
+.fail{color:#dc2626;font-size:12px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.dot.ok2{background:#16a34a}.dot.ng{background:#dc2626}
+.empty-row{text-align:center;padding:2.5rem;color:#9ca3af;font-size:13px}
+.ov-actions{display:flex;gap:8px;margin-top:10px}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP ===== -->
+<div id="top-page" class="top">
+  <div class="top-logo">🏥</div>
+  <div class="top-title">就学時健診 通過チェック</div>
+  <div class="top-sub">検査場所ごとの通過状況をリアルタイム共有</div>
+
+  <div class="top-card">
+    <div class="tc-title">✨ 新しい健診を作成</div>
+
+    <div class="field-label">健診名・年度</div>
+    <input type="text" id="c-ename" placeholder="例: 令和8年度 就学時健康診断">
+
+    <div class="field-label">検査場所（プリセットから追加できます）</div>
+    <div class="add-row">
+      <input type="text" id="c-cp" placeholder="例: 内科" onkeydown="if(event.key==='Enter')cAddCP()">
+      <button class="btn-add" onclick="cAddCP()">追加</button>
+    </div>
+    <div class="preset-row">
+      <button class="preset-btn" onclick="cAddPreset('内科')">＋内科</button>
+      <button class="preset-btn" onclick="cAddPreset('眼科')">＋眼科</button>
+      <button class="preset-btn" onclick="cAddPreset('耳鼻科')">＋耳鼻科</button>
+      <button class="preset-btn" onclick="cAddPreset('視力')">＋視力</button>
+      <button class="preset-btn" onclick="cAddPreset('聴力')">＋聴力</button>
+      <button class="preset-btn" onclick="cAddPreset('歯科')">＋歯科</button>
+      <button class="preset-btn" onclick="cAddPreset('スクリーニング')">＋スクリーニング</button>
+      <button class="preset-btn" onclick="cAddPreset('知能検査')">＋知能検査</button>
+    </div>
+    <div class="tag-list" id="c-cp-tags"></div>
+
+    <div class="field-label">班</div>
+    <div class="add-row">
+      <input type="text" id="c-grp" placeholder="例: 1班" onkeydown="if(event.key==='Enter')cAddGrp()">
+      <button class="btn-add" onclick="cAddGrp()">追加</button>
+    </div>
+    <div class="bulk-row">
+      <input type="number" id="c-gn" placeholder="班の数" min="1" max="40">
+      <button class="btn-add" onclick="cBulkGrp()">まとめて追加</button>
+    </div>
+    <div class="tag-list" id="c-grp-tags"></div>
+  </div>
+
+  <button class="btn-create" id="btn-create" onclick="createNewEvent()">
+    🏥 健診を作成してURLを発行
+  </button>
+  <div class="top-msg" id="top-msg"></div>
+
+  <div class="divider">または</div>
+
+  <div class="join-card">
+    <div class="tc-title" style="margin-bottom:4px">🔗 既存の健診に参加</div>
+    <div style="font-size:12px;color:#6b7280">URLを受け取った場合はそのまま開くだけでOK</div>
+    <div class="join-row">
+      <input type="text" id="j-id" placeholder="健診ID（例: abc12345）">
+      <button class="btn-join" onclick="joinById()">参加</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">🎉 作成完了！</div>
+    <div class="modal-sub">下のURLを担当教員全員にLINEで送ってください。<br>開くだけで参加・チェックできます。</div>
+    <div class="url-box" id="modal-url"></div>
+    <button class="btn-copy" onclick="copyModalUrl()">📋 URLをコピー</button>
+    <button class="btn-go" onclick="goToEvent()">この健診を開く →</button>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div class="app" id="app">
+  <div class="app-hdr">
+    <div class="app-hdr-main">
+      <div class="app-hdr-title" id="hdr-title">読み込み中...</div>
+      <div class="app-hdr-id" id="hdr-id"></div>
+    </div>
+    <span class="sync ing" id="sync-badge">同期中</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('setup',this)">⚙️ 設定</button>
+    <button class="tab" onclick="showTab('checkin',this)">✅ チェック</button>
+    <button class="tab" onclick="showTab('overview',this)">📋 一覧</button>
+  </div>
+
+  <!-- 設定 -->
+  <div class="page active" id="page-setup">
+    <div class="share-bar">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:11px;color:#4f46e5;font-weight:600;margin-bottom:3px">📎 招待URL</div>
+        <div class="share-bar-url" id="share-url"></div>
+      </div>
+      <button class="btn-share" onclick="shareUrl()">共有</button>
+    </div>
+    <div class="card">
+      <div class="card-label">健診名・年度</div>
+      <input type="text" id="inp-event" placeholder="例: 令和8年度 就学時健康診断">
+    </div>
+    <div class="card">
+      <div class="card-label">検査場所</div>
+      <div class="row">
+        <input type="text" id="inp-cp" placeholder="例: 内科" style="flex:1" onkeydown="if(event.key==='Enter')addCP()">
+        <button class="btn" onclick="addCP()">追加</button>
+      </div>
+      <div class="preset-row" style="margin-top:8px">
+        <button class="preset-btn" onclick="addPreset('内科')">＋内科</button>
+        <button class="preset-btn" onclick="addPreset('眼科')">＋眼科</button>
+        <button class="preset-btn" onclick="addPreset('耳鼻科')">＋耳鼻科</button>
+        <button class="preset-btn" onclick="addPreset('視力')">＋視力</button>
+        <button class="preset-btn" onclick="addPreset('聴力')">＋聴力</button>
+        <button class="preset-btn" onclick="addPreset('歯科')">＋歯科</button>
+        <button class="preset-btn" onclick="addPreset('スクリーニング')">＋スクリーニング</button>
+        <button class="preset-btn" onclick="addPreset('知能検査')">＋知能検査</button>
+      </div>
+      <div class="tag-list" id="cp-tags"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">班</div>
+      <div class="row">
+        <input type="text" id="inp-group" placeholder="例: 1班" style="flex:1" onkeydown="if(event.key==='Enter')addGroup()">
+        <button class="btn" onclick="addGroup()">追加</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input type="number" id="inp-gn" placeholder="班の数" min="1" max="40" style="width:90px;flex:none">
+        <button class="btn" onclick="bulkGroups()">まとめて追加</button>
+      </div>
+      <div class="tag-list" id="group-tags"></div>
+    </div>
+    <button class="save-btn" onclick="saveConfig()">💾 設定を保存</button>
+    <div class="setup-msg" id="setup-msg"></div>
+  </div>
+
+  <!-- チェック -->
+  <div class="ci-page" id="page-checkin">
+    <div class="ci-bar">
+      <div class="leg"><div class="leg-box leg-ok"></div>通過済</div>
+      <div class="leg"><div class="leg-box leg-ng"></div>未通過</div>
+      <div class="ci-prog" id="ci-prog"></div>
+    </div>
+    <div class="ci-scroll">
+      <table class="ci-matrix">
+        <thead><tr id="ci-hdr"></tr></thead>
+        <tbody id="ci-body"></tbody>
+      </table>
+    </div>
+    <div class="ci-hint">タイルをタップ → 通過記録。もう一度タップで取消</div>
+  </div>
+
+  <!-- 一覧 -->
+  <div class="page" id="page-overview">
+    <div class="metrics">
+      <div class="metric"><div class="m-label">総通過数</div><div class="m-val" id="m-tot">0</div></div>
+      <div class="metric"><div class="m-label">全完了班</div><div class="m-val" id="m-ok">0</div></div>
+      <div class="metric"><div class="m-label">未通過あり</div><div class="m-val" id="m-ng">0</div></div>
+    </div>
+    <div class="filter-row">
+      <button class="fbtn active" id="f-all" onclick="setFilter('all')">全班</button>
+      <button class="fbtn" id="f-ok"  onclick="setFilter('ok')">全完了</button>
+      <button class="fbtn" id="f-ng"  onclick="setFilter('ng')">未通過あり</button>
+    </div>
+    <div class="ov-wrap">
+      <table><thead><tr id="ov-hdr"></tr></thead><tbody id="ov-body"></tbody></table>
+    </div>
+    <div class="ov-actions">
+      <button class="btn" onclick="copyText()" style="font-size:12px">📋 テキストコピー</button>
+      <button class="btn btn-danger" onclick="doReset()" style="font-size:12px">🗑 記録リセット</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ★ GAS WebアプリURL（CP通過管理と同じものを使いまわす）
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwEHr5typEWu4A2nldXnV1VJMUMnCrwufTKAYPp3DM4rcy7SFChXD7xhWiddD4HRT4/exec';
+
+let S={eventId:'',eventName:'',checkpoints:[],groups:[],records:{},filter:'all'};
+let tCPs=[],tGrps=[];
+let cCPs=[],cGrps=[];
+let pollTimer=null,createdUrl='';
+
+// JSONP
+let _ci=0;
+function api(params){
+  return new Promise((resolve,reject)=>{
+    const cb='__gcb'+(++_ci);
+    const tid=setTimeout(()=>{delete window[cb];reject(new Error('timeout'));},15000);
+    window[cb]=(d)=>{clearTimeout(tid);delete window[cb];document.getElementById(cb)?.remove();resolve(d);};
+    const qs=new URLSearchParams({...params,callback:cb}).toString();
+    const s=document.createElement('script');
+    s.id=cb;s.src=GAS_URL+'?'+qs;
+    s.onerror=()=>{clearTimeout(tid);delete window[cb];s.remove();reject(new Error('network error'));};
+    document.head.appendChild(s);
+  });
+}
+
+// 起動
+(function init(){
+  const eid=new URLSearchParams(location.search).get('event');
+  if(eid){enterApp(eid);}
+  else{document.getElementById('top-page').style.display='flex';}
+})();
+
+// 作成フォーム
+function cAddCP(){
+  const v=document.getElementById('c-cp').value.trim();
+  if(!v||cCPs.includes(v))return;
+  cCPs.push(v);document.getElementById('c-cp').value='';renderCTags();
+}
+function cAddPreset(v){
+  if(!cCPs.includes(v)){cCPs.push(v);renderCTags();}
+}
+function cAddGrp(){
+  const v=document.getElementById('c-grp').value.trim();
+  if(!v||cGrps.includes(v))return;
+  cGrps.push(v);document.getElementById('c-grp').value='';renderCTags();
+}
+function cBulkGrp(){
+  const n=parseInt(document.getElementById('c-gn').value);
+  if(!n)return;
+  for(let i=1;i<=n;i++){const nm=i+'班';if(!cGrps.includes(nm))cGrps.push(nm);}
+  document.getElementById('c-gn').value='';renderCTags();
+}
+function renderCTags(){
+  document.getElementById('c-cp-tags').innerHTML=
+    cCPs.map((v,i)=>`<span class="tag">${v}<button class="tag-x" onclick="cCPs.splice(${i},1);renderCTags()">×</button></span>`).join('')
+    ||'<span style="font-size:12px;color:#9ca3af">なし</span>';
+  document.getElementById('c-grp-tags').innerHTML=
+    cGrps.map((v,i)=>`<span class="tag">${v}<button class="tag-x" onclick="cGrps.splice(${i},1);renderCTags()">×</button></span>`).join('')
+    ||'<span style="font-size:12px;color:#9ca3af">なし</span>';
+}
+
+// イベント作成
+async function createNewEvent(){
+  const name=document.getElementById('c-ename').value.trim();
+  const msg=document.getElementById('top-msg');
+  if(!name){msg.textContent='健診名を入力してください';return;}
+  if(!cCPs.length){msg.textContent='検査場所を1つ以上追加してください';return;}
+  if(!cGrps.length){msg.textContent='班を1つ以上追加してください';return;}
+  const btn=document.getElementById('btn-create');
+  btn.disabled=true;btn.textContent='作成中...';msg.textContent='';
+  try{
+    const res=await api({action:'createEvent',eventName:name});
+    if(!res.ok)throw new Error(res.error);
+    const r2=await api({action:'saveConfig',eventId:res.eventId,eventName:name,
+      checkpoints:JSON.stringify(cCPs),groups:JSON.stringify(cGrps)});
+    if(!r2.ok)throw new Error(r2.error);
+    S.eventId=res.eventId;
+    createdUrl=location.origin+location.pathname+'?event='+res.eventId;
+    document.getElementById('modal-url').textContent=createdUrl;
+    document.getElementById('modal').classList.add('show');
+  }catch(e){msg.textContent='エラー: '+e.message;}
+  finally{btn.disabled=false;btn.textContent='🏥 健診を作成してURLを発行';}
+}
+
+function copyModalUrl(){
+  navigator.clipboard.writeText(createdUrl)
+    .then(()=>alert('URLをコピーしました！LINEなどで共有してください'))
+    .catch(()=>prompt('コピーしてください:',createdUrl));
+}
+function goToEvent(){
+  document.getElementById('modal').classList.remove('show');
+  enterApp(S.eventId);
+}
+
+async function joinById(){
+  const eid=document.getElementById('j-id').value.trim();
+  const msg=document.getElementById('top-msg');
+  if(!eid){msg.textContent='健診IDを入力してください';return;}
+  msg.textContent='確認中...';
+  try{
+    const r=await api({action:'getState',eventId:eid});
+    if(!r.ok){msg.textContent='健診が見つかりません';return;}
+    enterApp(eid);
+  }catch(e){msg.textContent='エラーが発生しました';}
+}
+
+function enterApp(eid){
+  S.eventId=eid;
+  document.getElementById('top-page').style.display='none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('hdr-id').textContent='ID: '+eid;
+  const inv=location.origin+location.pathname+'?event='+eid;
+  document.getElementById('share-url').textContent=inv;
+  history.replaceState({},'','?event='+eid);
+  fetchState().then(()=>startPolling());
+}
+
+function showTab(name,btn){
+  const leaving=document.querySelector('.tab.active')?.textContent||'';
+  document.querySelectorAll('.page,.ci-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(leaving.includes('設定')&&name!=='setup'){
+    tCPs=[...S.checkpoints];tGrps=[...S.groups];
+    document.getElementById('inp-event').value=S.eventName;
+    renderTags();
+  }
+  if(name==='overview')renderOverview();
+  if(name==='checkin')renderCheckin();
+}
+
+function startPolling(){
+  if(pollTimer)clearInterval(pollTimer);
+  pollTimer=setInterval(fetchState,5000);
+}
+
+async function fetchState(){
+  const b=document.getElementById('sync-badge');
+  b.textContent='同期中';b.className='sync ing';
+  try{
+    const d=await api({action:'getState',eventId:S.eventId});
+    if(d.ok){
+      S.eventName=d.eventName;S.checkpoints=d.checkpoints;S.groups=d.groups;
+      const srv=d.records||{};
+      const merged={};
+      Object.keys(srv).forEach(g=>{merged[g]={...srv[g]};});
+      Object.keys(S.records).forEach(g=>{
+        Object.keys(S.records[g]||{}).forEach(cp=>{
+          if(!merged[g])merged[g]={};
+          if(!merged[g][cp])merged[g][cp]=S.records[g][cp];
+        });
+      });
+      S.records=merged;
+      b.textContent='同期済';b.className='sync';
+      renderAll();
+    }
+  }catch(e){b.textContent='エラー';b.className='sync err';}
+}
+
+// 設定タブ
+function addCP(){
+  const v=document.getElementById('inp-cp').value.trim();
+  if(!v||tCPs.includes(v))return;
+  tCPs.push(v);document.getElementById('inp-cp').value='';renderTags();
+}
+function addPreset(v){
+  if(!tCPs.includes(v)){tCPs.push(v);renderTags();}
+}
+function addGroup(){
+  const v=document.getElementById('inp-group').value.trim();
+  if(!v||tGrps.includes(v))return;
+  tGrps.push(v);document.getElementById('inp-group').value='';renderTags();
+}
+function bulkGroups(){
+  const n=parseInt(document.getElementById('inp-gn').value);
+  if(!n)return;
+  for(let i=1;i<=n;i++){const nm=i+'班';if(!tGrps.includes(nm))tGrps.push(nm);}
+  document.getElementById('inp-gn').value='';renderTags();
+}
+function renderTags(){
+  document.getElementById('cp-tags').innerHTML=
+    tCPs.map((v,i)=>`<span class="tag">${v}<button class="tag-x" onclick="tCPs.splice(${i},1);renderTags()">×</button></span>`).join('')
+    ||'<span style="font-size:12px;color:#9ca3af">なし</span>';
+  document.getElementById('group-tags').innerHTML=
+    tGrps.map((v,i)=>`<span class="tag">${v}<button class="tag-x" onclick="tGrps.splice(${i},1);renderTags()">×</button></span>`).join('')
+    ||'<span style="font-size:12px;color:#9ca3af">なし</span>';
+}
+async function saveConfig(){
+  const name=document.getElementById('inp-event').value.trim();
+  const msg=document.getElementById('setup-msg');
+  if(!name){msg.textContent='健診名を入力してください';return;}
+  if(!tCPs.length){msg.textContent='検査場所を1つ以上追加してください';return;}
+  if(!tGrps.length){msg.textContent='班を1つ以上追加してください';return;}
+  msg.textContent='保存中...';
+  try{
+    const r=await api({action:'saveConfig',eventId:S.eventId,eventName:name,
+      checkpoints:JSON.stringify(tCPs),groups:JSON.stringify(tGrps)});
+    if(r.ok){msg.textContent='✅ 保存しました';await fetchState();}
+    else{msg.textContent='エラー: '+r.error;}
+  }catch(e){msg.textContent='エラーが発生しました';}
+}
+
+// チェックイン
+function renderCheckin(){
+  const cps=S.checkpoints,gs=S.groups;
+  document.getElementById('ci-hdr').innerHTML='<th class="col-g">班</th>'+
+    cps.map(cp=>{
+      const cnt=gs.filter(g=>S.records[g]&&S.records[g][cp]).length;
+      return `<th class="col-cp"><div class="cp-th-name">${cp}</div><div class="cp-th-cnt">${cnt}/${gs.length}班</div></th>`;
+    }).join('');
+  const tbody=document.getElementById('ci-body');
+  if(!gs.length||!cps.length){
+    tbody.innerHTML=`<tr><td colspan="${cps.length+1}" class="empty-row">設定タブで検査場所と班を登録してください</td></tr>`;
+    document.getElementById('ci-prog').textContent='';return;
+  }
+  let tot=0,total=gs.length*cps.length;
+  tbody.innerHTML=gs.map(g=>{
+    const allOk=cps.every(cp=>S.records[g]&&S.records[g][cp]);
+    const cells=cps.map(cp=>{
+      const p=S.records[g]&&S.records[g][cp];if(p)tot++;
+      return `<td class="t-cell"><div class="tile${p?' ok':''}" onclick="toggleCell('${esc(g)}','${esc(cp)}')">
+        <div class="t-ico">${p?'✅':'　'}</div><div class="t-time">${p?S.records[g][cp]:''}</div>
+      </div></td>`;
+    }).join('');
+    return `<tr class="${allOk?'all-ok':''}"><td class="col-g">${allOk?'✓ ':''}${g}</td>${cells}</tr>`;
+  }).join('');
+  const pct=total>0?Math.round(tot/total*100):0;
+  document.getElementById('ci-prog').textContent=`${tot}/${total} 通過（${pct}%）`;
+}
+
+async function toggleCell(g,cp){
+  if(!S.records[g])S.records[g]={};
+  const already=S.records[g][cp];
+  const msg=already
+    ?`「${g}」の「${cp}」\n通過記録を取り消しますか？`
+    :`「${g}」が「${cp}」を通過しましたか？`;
+  if(!confirm(msg))return;
+  const newTime=already?null:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+  if(already){delete S.records[g][cp];}
+  else{S.records[g][cp]=newTime;}
+  renderCheckin();renderOverview();
+  await api({action:'toggle',eventId:S.eventId,group:g,cp:cp,op:already?'remove':'add'});
+}
+
+// 一覧
+function renderOverview(){
+  const cps=S.checkpoints,gs=S.groups;
+  document.getElementById('ov-hdr').innerHTML='<th>班</th>'+cps.map(cp=>`<th>${cp}</th>`).join('');
+  let tot=0,okCnt=0,ngCnt=0;
+  const rows=gs.map(g=>{
+    const allOk=cps.length>0&&cps.every(cp=>S.records[g]&&S.records[g][cp]);
+    allOk?okCnt++:ngCnt++;
+    cps.forEach(cp=>{if(S.records[g]&&S.records[g][cp])tot++;});
+    return{g,allOk};
+  });
+  document.getElementById('m-tot').textContent=tot;
+  document.getElementById('m-ok').textContent=okCnt;
+  document.getElementById('m-ng').textContent=ngCnt;
+  const f=S.filter;
+  const filtered=rows.filter(r=>f==='ok'?r.allOk:f==='ng'?!r.allOk&&cps.length>0:true);
+  const tbody=document.getElementById('ov-body');
+  if(!gs.length||!cps.length){
+    tbody.innerHTML=`<tr><td colspan="${cps.length+1}" class="empty-row">設定タブで検査場所・班を追加してください</td></tr>`;return;
+  }
+  tbody.innerHTML=filtered.map(({g,allOk})=>{
+    const cells=cps.map(cp=>{
+      const p=S.records[g]&&S.records[g][cp];
+      return `<td>${p?`<span class="pass">✓ ${S.records[g][cp]}</span>`:`<span class="fail">✗</span>`}</td>`;
+    }).join('');
+    return `<tr><td style="font-weight:${allOk?700:400};white-space:nowrap"><span class="dot ${allOk?'ok2':'ng'}"></span>${g}</td>${cells}</tr>`;
+  }).join('');
+}
+function setFilter(f){
+  S.filter=f;
+  ['all','ok','ng'].forEach(k=>document.getElementById('f-'+k).classList.toggle('active',k===f));
+  renderOverview();
+}
+function copyText(){
+  const cps=S.checkpoints,gs=S.groups;
+  let t=(S.eventName||'健診記録')+'\n'+new Date().toLocaleString('ja-JP')+'\n\n';
+  t+='班\t'+cps.join('\t')+'\n';
+  gs.forEach(g=>{t+=g+'\t'+cps.map(cp=>S.records[g]&&S.records[g][cp]?'○ '+S.records[g][cp]:'✗').join('\t')+'\n';});
+  navigator.clipboard.writeText(t).then(()=>alert('コピーしました')).catch(()=>prompt('コピー:',t));
+}
+async function doReset(){
+  if(!confirm('通過記録をすべてリセットしますか？'))return;
+  await api({action:'reset',eventId:S.eventId});
+  await fetchState();
+}
+function shareUrl(){
+  const url=location.origin+location.pathname+'?event='+S.eventId;
+  if(navigator.share){navigator.share({title:S.eventName||'就学時健診',url});}
+  else{navigator.clipboard.writeText(url).then(()=>alert('URLをコピーしました！'));}
+}
+function renderAll(){
+  document.getElementById('hdr-title').textContent=S.eventName||'（未設定）';
+  const setupActive=document.getElementById('page-setup').classList.contains('active');
+  if(!setupActive){
+    tCPs=[...S.checkpoints];tGrps=[...S.groups];
+    document.getElementById('inp-event').value=S.eventName;
+    renderTags();
+  }
+  renderCheckin();renderOverview();
+}
+function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+</script>
+</body>
+</html>
